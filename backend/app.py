@@ -14,10 +14,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
 
-# YouTube API
-youtube = build('youtube', 'v3', developerKey=os.getenv('YOUTUBE_API_KEY'))
+# CORS configuration - allow all origins in production
+CORS(app, origins=[
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "https://*.onrender.com",
+    "https://*.netlify.app",
+    "https://*.vercel.app"
+], supports_credentials=True)
+
+# YouTube API Key
+YOUTUBE_API_KEY = os.getenv('YOUTUBE_API_KEY')
 
 def calculate_viral_score(views, likes, comments, days_since):
     """Calculate viral potential score (0-100)"""
@@ -28,8 +36,24 @@ def calculate_viral_score(views, likes, comments, days_since):
     score = min(100, (velocity / 10000 * 40) + (engagement * 3) + recency)
     return round(score, 1)
 
+def get_youtube_client():
+    """Get YouTube API client, returns None if no API key"""
+    if not YOUTUBE_API_KEY:
+        return None
+    try:
+        return build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+    except Exception as e:
+        print(f"Error creating YouTube client: {e}")
+        return None
+
 def get_trending_videos(niche, max_results=20):
     """Fetch trending videos for a niche"""
+    youtube = get_youtube_client()
+    
+    if not youtube:
+        print("YouTube API not configured, using template mode")
+        return []
+    
     try:
         # Search for recent popular videos in niche
         published_after = (datetime.now() - timedelta(days=7)).isoformat() + 'Z'
@@ -225,7 +249,8 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'youtube_api_configured': bool(os.getenv('YOUTUBE_API_KEY'))
+        'youtube_api_configured': bool(YOUTUBE_API_KEY),
+        'timestamp': datetime.now().isoformat()
     })
 
 if __name__ == '__main__':
