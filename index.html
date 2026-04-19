@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViroScope Clone — Viral YouTube Idea Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .logo span {
+            color: #ffd700;
+        }
+
+        .tagline {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Main Card */
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .section-title span {
+            color: #667eea;
+        }
+
+        /* Popular Niches */
+        .niches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .niche-btn {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .niche-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+        }
+
+        .niche-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        /* Custom Input */
+        .custom-section {
+            margin-bottom: 30px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .char-count {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        /* Generate Button */
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .generate-btn .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .generate-btn.loading .spinner {
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-section {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-count {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .idea-card {
+            background: #f8f9ff;
+            border: 2px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .idea-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .idea-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .idea-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .idea-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .viral-score {
+            background: #ffd700;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .difficulty {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .difficulty.easy { background: #4caf50; color: white; }
+        .difficulty.medium { background: #ff9800; color: white; }
+        .difficulty.hard { background: #f44336; color: white; }
+
+        .idea-description {
+            margin-top: 12px;
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .idea-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: #e8eaf6;
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* Copy Button */
+        .copy-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .copy-btn.copied {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .main-card {
+                padding: 25px;
+            }
+            
+            .niches-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .logo {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo">Viro<span>Scope</span> Clone</h1>
+            <p class="tagline">AI-Powered · Free Forever</p>
+            <div class="badges">
+                <span class="badge">🎯 Niche Intelligence</span>
+                <span class="badge">🔥 Viral Ideas That Win</span>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="main-card">
+            <h2 class="section-title">Popular Niches — <span>click to select</span></h2>
+            <div class="niches-grid" id="nicheGrid">
+                <button class="niche-btn" data-niche="Business">💼 Business</button>
+                <button class="niche-btn" data-niche="Technology">💻 Technology</button>
+                <button class="niche-btn" data-niche="Health">❤️ Health</button>
+                <button class="niche-btn" data-niche="Finance">💰 Finance</button>
+                <button class="niche-btn" data-niche="Lifestyle">✨ Lifestyle</button>
+                <button class="niche-btn" data-niche="Education">📚 Education</button>
+                <button class="niche-btn" data-niche="Gaming">🎮 Gaming</button>
+                <button class="niche-btn" data-niche="Fitness">💪 Fitness</button>
+                <button class="niche-btn" data-niche="Travel">✈️ Travel</button>
+                <button class="niche-btn" data-niche="Food">🍕 Food</button>
+                <button class="niche-btn" data-niche="Fashion">👗 Fashion</button>
+                <button class="niche-btn" data-niche="DIY">🔨 DIY</button>
+            </div>
+
+            <div class="custom-section">
+                <h2 class="section-title">Or type your own niche</h2>
+                <div class="input-wrapper">
+                    <input type="text" class="custom-input" id="customNiche" 
+                           placeholder="e.g., Digital Marketing, AI Tools, Side Hustles..." maxlength="60">
+                    <span class="char-count"><span id="charCount">0</span>/60</span>
+                </div>
+            </div>
+
+            <button class="generate-btn" id="generateBtn">
+                <span class="spinner"></span>
+                <span class="btn-text">🚀 Generate Viral Ideas</span>
+            </button>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h2 class="section-title">🎯 Generated Ideas</h2>
+                    <span class="results-count" id="resultsCount">10 ideas found</span>
+                </div>
+                <div id="ideasContainer"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Need help? <a href="mailto:contact@example.com">contact@example.com</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:5000'; // Change this if backend is hosted elsewhere
+        const USE_BACKEND = false; // Set to true when backend is running
+
+        // DOM Elements
+        const nicheButtons = document.querySelectorAll('.niche-btn');
+        const customNicheInput = document.getElementById('customNiche');
+        const charCount = document.getElementById('charCount');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const ideasContainer = document.getElementById('ideasContainer');
+        const resultsCount = document.getElementById('resultsCount');
+
+        let selectedNiche = '';
+
+        // Niche templates with viral patterns
+        const viralPatterns = {
+            'Business': {
+                hooks: [
+                    'I Made $X in Y Days Using This Simple Method',
+                    'Stop Using X — Do This Instead',
+                    'The Truth About Making Money Online',
+                    'X Passive Income Streams That Actually Work',
+                    'How I Went From $0 to $X/Month'
+                ],
+                angles: ['passive income', 'side hustle', 'freelancing', 'entrepreneurship', 'marketing'],
+                tags: ['business', 'money', 'entrepreneur', 'success', 'finance']
+            },
+            'Technology': {
+                hooks: [
+                    'This AI Tool Will Replace Your Job by 2026',
+                    'X Tech Tools That Save Me 10 Hours/Week',
+                    'I Built an App in X Minutes Using AI',
+                    'Stop Doing This Task Manually — Automate It',
+                    'The X Best Free Software Nobody Knows About'
+                ],
+                angles: ['AI tools', 'automation', 'productivity', 'coding', 'software'],
+                tags: ['tech', 'AI', 'software', 'programming', 'tutorial']
+            },
+            'Health': {
+                hooks: [
+                    'I Tried X for 30 Days — Here Are My Results',
+                    'The X Health Habits That Changed My Life',
+                    'Doctors Don\'t Want You to Know This About X',
+                    'X Simple Health Hacks That Actually Work',
+                    'How I Lost X Pounds Without Dieting'
+                ],
+                angles: ['wellness', 'nutrition', 'mental health', 'fitness', 'habits'],
+                tags: ['health', 'wellness', 'fitness', 'nutrition', 'selfcare']
+            },
+            'Finance': {
+                hooks: [
+                    'I Saved $X in One Year With This Budget Trick',
+                    'The X Money Mistakes Keeping You Poor',
+                    'How to Build Wealth Starting at $0',
+                    'X Investment Mistakes I Wish I Knew Earlier',
+                    'The Truth About Getting Rich in Your 20s'
+                ],
+                angles: ['investing', 'saving', 'budgeting', 'wealth', 'financial freedom'],
+                tags: ['finance', 'money', 'investing', 'wealth', 'saving']
+            },
+            'Lifestyle': {
+                hooks: [
+                    'I Quit My Job to Do X — Here\'s What Happened',
+                    'X Minimalist Habits That Changed Everything',
+                    'The X Life Upgrades Worth Every Penny',
+                    'How I Traveled to X Countries on a Budget',
+                    'X Daily Routines of Successful People'
+                ],
+                angles: ['minimalism', 'travel', 'productivity', 'routines', 'mindset'],
+                tags: ['lifestyle', 'minimalism', 'travel', 'productivity', 'routine']
+            },
+            'Education': {
+                hooks: [
+                    'X Skills That Pay $100K+ (No Degree Needed)',
+                    'I Learned X in 30 Days — Here\'s My Method',
+                    'The X Best Free Courses Nobody Talks About',
+                    'How to Master Any Skill in X Hours',
+                    'X Learning Hacks That Actually Work'
+                ],
+                angles: ['online learning', 'skill building', 'career growth', 'certifications', 'self-education'],
+                tags: ['education', 'learning', 'skills', 'career', 'tutorial']
+            },
+            'Gaming': {
+                hooks: [
+                    'X Secret Features You Didn\'t Know About',
+                    'I Spent X Hours Testing This — Here\'s the Truth',
+                    'The X Best Games Nobody Is Playing',
+                    'How I Ranked Top X% in 30 Days',
+                    'X Tips That Pro Players Won\'t Tell You'
+                ],
+                angles: ['tips & tricks', 'reviews', 'walkthroughs', 'speedrun', 'hidden features'],
+                tags: ['gaming', 'games', 'tutorial', 'review', 'tips']
+            },
+            'Fitness': {
+                hooks: [
+                    'I Trained Like X for 30 Days — Here\'s My Body',
+                    'The X Minute Workout That Actually Works',
+                    'X Fitness Myths Destroying Your Progress',
+                    'How I Got X Results Without a Gym',
+                    'The X Exercises Everyone Gets Wrong'
+                ],
+                angles: ['workouts', 'nutrition', 'supplements', 'recovery', 'motivation'],
+                tags: ['fitness', 'workout', 'gym', 'health', 'exercise']
+            },
+            'Travel': {
+                hooks: [
+                    'I Visited X Countries on $Y/Day — Here\'s How',
+                    'X Hidden Travel Hacks That Save Thousands',
+                    'The Truth About Solo Travel',
+                    'X Destinations That Are Actually Overrated',
+                    'How to Travel X for Free (Yes, Really)'
+                ],
+                angles: ['budget travel', 'solo travel', 'hidden gems', 'travel hacks', 'van life'],
+                tags: ['travel', 'budget', 'backpacking', 'adventure', 'vlog']
+            },
+            'Food': {
+                hooks: [
+                    'X Restaurant Secrets They Don\'t Want You to Know',
+                    'I Ate Only X for 30 Days — Here\'s What Happened',
+                    'X Cooking Hacks That Will Change Your Life',
+                    'The X Best Meals Under $Y',
+                    'How to Make Restaurant-Quality X at Home'
+                ],
+                angles: ['recipes', 'restaurant reviews', 'cooking tips', 'budget meals', 'meal prep'],
+                tags: ['food', 'cooking', 'recipe', 'review', 'budget']
+            },
+            'Fashion': {
+                hooks: [
+                    'X Wardrobe Staples That Go With Everything',
+                    'I Dressed Like X for a Week — Reactions',
+                    'The X Fashion Mistakes Making You Look Cheap',
+                    'How to Build a Capsule Wardrobe for $X',
+                    'X Style Hacks That Changed Everything'
+                ],
+                angles: ['style tips', 'budget fashion', 'sustainable fashion', 'outfit ideas', 'trends'],
+                tags: ['fashion', 'style', 'outfit', 'budget', 'tips']
+            },
+            'DIY': {
+                hooks: [
+                    'I Built X for Under $Y — Full Tutorial',
+                    'X DIY Projects That Actually Save Money',
+                    'The X Tools Every Homeowner Needs',
+                    'How I Transformed My X in One Weekend',
+                    'X DIY Mistakes That Cost You Thousands'
+                ],
+                angles: ['home improvement', 'crafts', 'furniture', 'decor', 'repairs'],
+                tags: ['DIY', 'tutorial', 'home', 'crafts', 'budget']
+            }
+        };
+
+        // Generic patterns for custom niches
+        const genericPatterns = {
+            hooks: [
+                'The Truth About {niche} Nobody Talks About',
+                'X {niche} Secrets That Will Change Everything',
+                'I Tried {niche} for 30 Days — Here\'s What Happened',
+                'Stop Making These X {niche} Mistakes',
+                'How to Master {niche} in X Simple Steps',
+                'X {niche} Hacks That Actually Work',
+                'The X Best {niche} Tips for Beginners',
+                'Why Your {niche} Strategy Is Failing',
+                'X Ways to 10x Your {niche} Results',
+                'The Dark Side of {niche} Nobody Warns You About'
+            ],
+            angles: ['beginners guide', 'advanced tips', 'common mistakes', 'hidden features', 'expert secrets'],
+            tags: ['tutorial', 'tips', 'guide', 'review', 'howto']
+        };
+
+        // Niche selection
+        nicheButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                nicheButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedNiche = btn.dataset.niche;
+                customNicheInput.value = '';
+                updateCharCount();
+            });
+        });
+
+        // Character count
+        customNicheInput.addEventListener('input', () => {
+            updateCharCount();
+            if (customNicheInput.value) {
+                nicheButtons.forEach(b => b.classList.remove('active'));
+                selectedNiche = customNicheInput.value;
+            }
+        });
+
+        function updateCharCount() {
+            charCount.textContent = customNicheInput.value.length;
+        }
+
+        // Generate ideas
+        generateBtn.addEventListener('click', async () => {
+            const niche = selectedNiche || customNicheInput.value.trim();
+            
+            if (!niche) {
+                alert('Please select a niche or type your own!');
+                return;
+            }
+
+            // Show loading
+            generateBtn.classList.add('loading');
+            generateBtn.disabled = true;
+            resultsSection.classList.remove('show');
+
+            let ideas;
+            
+            // Try backend first, fallback to frontend
+            if (USE_BACKEND) {
+                try {
+                    const response = await fetch(`${API_URL}/api/generate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ niche })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        ideas = data.ideas;
+                    } else {
+                        throw new Error('Backend error');
+                    }
+                } catch (e) {
+                    console.log('Backend unavailable, using frontend mode');
+                    await new Promise(r => setTimeout(r, 1000));
+                    ideas = generateViralIdeas(niche);
+                }
+            } else {
+                // Frontend-only mode with simulated delay
+                await new Promise(r => setTimeout(r, 1500));
+                ideas = generateViralIdeas(niche);
+            }
+
+            displayIdeas(ideas);
+
+            // Hide loading
+            generateBtn.classList.remove('loading');
+            generateBtn.disabled = false;
+        });
+
+        function generateViralIdeas(niche) {
+            const patterns = viralPatterns[niche] || genericPatterns;
+            const ideas = [];
+            
+            const hooks = patterns.hooks || genericPatterns.hooks;
+            const angles = patterns.angles || genericPatterns.angles;
+            const tags = patterns.tags || genericPatterns.tags;
+
+            for (let i = 0; i < 10; i++) {
+                const hook = hooks[i % hooks.length];
+                const angle = angles[i % angles.length];
+                const viralScore = Math.floor(Math.random() * 20) + 75; // 75-95
+                
+                // Replace placeholders
+                let title = hook
+                    .replace('{niche}', niche)
+                    .replace(/X/g, () => Math.floor(Math.random() * 8) + 3)
+                    .replace(/Y/g, () => Math.floor(Math.random() * 90) + 10);
+
+                ideas.push({
+                    title,
+                    angle,
+                    viralScore,
+                    difficulty: viralScore > 85 ? 'hard' : viralScore > 80 ? 'medium' : 'easy',
+                    description: generateDescription(niche, angle),
+                    tags: tags.slice(0, 3 + Math.floor(Math.random() * 3))
+                });
+            }
+
+            // Sort by viral score
+            return ideas.sort((a, b) => b.viralScore - a.viralScore);
+        }
+
+        function generateDescription(niche, angle) {
+            const descriptions = [
+                `This ${angle}-focused video targets ${niche} enthusiasts with proven engagement patterns.`,
+                `High-retention ${angle} content perfect for ${niche} audiences.`,
+                `Viral-tested ${angle} format with strong CTR potential in ${niche}.`,
+                `Trending ${angle} angle with low competition in ${niche} space.`
+            ];
+            return descriptions[Math.floor(Math.random() * descriptions.length)];
+        }
+
+        function displayIdeas(ideas) {
+            resultsCount.textContent = `${ideas.length} ideas generated`;
+            ideasContainer.innerHTML = '';
+
+            ideas.forEach((idea, index) => {
+                const card = document.createElement('div');
+                card.className = 'idea-card';
+                card.innerHTML = `
+                    <div class="idea-title">${index + 1}. ${idea.title}</div>
+                    <div class="idea-meta">
+                        <span class="viral-score">🔥 ${idea.viralScore}/100 Viral Score</span>
+                        <span class="difficulty ${idea.difficulty}">${idea.difficulty.toUpperCase()}</span>
+                        <span>📐 ${idea.angle}</span>
+                    </div>
+                    <div class="idea-description">${idea.description}</div>
+                    <div class="idea-tags">
+                        ${idea.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => copyToClipboard(idea.title, card));
+                ideasContainer.appendChild(card);
+            });
+
+            resultsSection.classList.add('show');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyToClipboard(text, card) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Visual feedback
+                const originalBg = card.style.background;
+                card.style.background = '#667eea';
+                card.style.color = 'white';
+                
+                setTimeout(() => {
+                    card.style.background = originalBg;
+                    card.style.color = '';
+                }, 500);
+                
+                // Could add a toast notification here
+                console.log('Copied:', text);
+            });
+        }
+    </script>
+</body>
+</html>
